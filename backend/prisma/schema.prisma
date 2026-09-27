@@ -1,0 +1,71 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  PASSENGER
+  DRIVER
+}
+
+enum RideStatus {
+  REQUESTED
+  ACCEPTED
+  DRIVER_ARRIVED
+  STARTED
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  phone         String   @unique
+  passwordHash  String
+  balancePaisa  Int      @default(0)
+  role          UserRole @default(PASSENGER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  passengerRides Ride[]   @relation("PassengerRides")
+  drivenVehicle   Vehicle? @relation("DriverVehicle")
+}
+
+model Vehicle {
+  id        String   @id @default(cuid())
+  name      String
+  plateNo   String   @unique
+  capacity  Int      @default(3)
+  driverId  String   @unique
+  createdAt DateTime @default(now())
+  driver    User     @relation("DriverVehicle", fields: [driverId], references: [id])
+  rides     Ride[]
+}
+
+model Ride {
+  id             String     @id @default(cuid())
+  passengerId    String
+  vehicleId      String?
+  pickup         String
+  destination    String
+  requestedSeats Int        @default(1)
+  baseFarePaisa  Int      @default(0)
+  farePaisa      Int
+  status         RideStatus @default(REQUESTED)
+  requestedAt    DateTime   @default(now())
+  acceptedAt     DateTime?
+  arrivedAt      DateTime?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  cancelledAt    DateTime?
+  paymentSettledAt DateTime?
+  passenger      User       @relation("PassengerRides", fields: [passengerId], references: [id])
+  vehicle        Vehicle?   @relation(fields: [vehicleId], references: [id])
+
+  @@index([status])
+  @@index([passengerId])
+  @@index([vehicleId])
+}
