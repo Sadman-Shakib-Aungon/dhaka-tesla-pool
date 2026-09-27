@@ -21,6 +21,7 @@ services:
     environment:
       DATABASE_URL: postgresql://pool_user:pool_password@db:5432/dhaka_tesla_pool?schema=public
       PORT: 4000
+      JWT_SECRET: docker-development-secret-change-in-production
     ports:
       - "4000:4000"
     depends_on:
